@@ -1,22 +1,97 @@
-# 01-default — Spring Security Default Configuration
+# 02-configure-security-filter-chain – SecurityFilterChain Configuration
 
-## 🔐 Default Behavior
-- Spring Boot auto-enables **form-based login** when `spring-boot-starter-security` is on the classpath.
-- A **built-in login page** is available at `/login`.
-- **All endpoints are secured** by default — authentication is required unless explicitly permitted.
-- A default user is created with a **random password**, printed in the console.
+---
 
-```properties
-spring.security.user.name=admin
-spring.security.user.password=admin123
+## ✅ @EnableWebSecurity
+- Enables Spring Security’s web security support.
+- Used to register and customize `SecurityFilterChain` beans. Also, `AuthenticationManager` and `PasswordEncoder`.
+- Replaces `WebSecurityConfigurerAdapter` (deprecated in Spring Security 5.7+).
+
+---
+
+## 🔓 authorizeHttpRequests
+- Defines **authorization rules** for HTTP requests.
+
+```java
+http.authorizeHttpRequests(auth -> auth
+   .requestMatchers("/admin/**").hasRole("ADMIN")
+   .requestMatchers("/h2-console/**").permitAll()
+   .requestMatchers("/api/auth/**").permitAll()
+   .anyRequest().authenticated()
+)
 ```
 
-## 🔄 Authentication Flow Summary
-1. **Filter Chain** intercepts every HTTP request.
-2. **Authentication Filter** checks for login attempts and calls `AuthenticationManager`.
-3. **AuthenticationManager** delegates to one or more `AuthenticationProvider`s.
-4. **DaoAuthenticationProvider**:
-    - Calls `UserDetailsService.loadUserByUsername()` to fetch user details.
-    - Uses `PasswordEncoder.matches()` to validate the password.
-5. On success, authentication info is stored in the **SecurityContext**.
-6. The request continues to your **application controller** if authorized.
+---
+
+## 🔒 sessionManagement
+- Manages session-related security like setting the session creation policy.
+
+```java
+http.sessionManagement(session -> 
+    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+);
+```
+
+---
+
+## 🔑 httpBasic() vs formLogin()
+
+| Feature     | httpBasic()           | formLogin()               |
+|-------------|-----------------------|---------------------------|
+| UI          | Browser alert box     | Custom login form         |
+| Use Case    | APIs, simple apps     | Web applications          |
+| Credentials | Sent on every request | Stored in session         |
+| Example     | `http.httpBasic();`   | `http.formLogin();`       |
+
+---
+
+## 🧾 headers()
+- Configures **security-related HTTP headers**.
+
+```java
+http.headers(headers -> 
+    headers.frameOptions().sameOrigin()
+);
+```
+
+### Common Headers:
+- `X-Frame-Options`
+- `Content-Security-Policy`
+- `Strict-Transport-Security`
+
+---
+
+## 🛡️ csrf()
+- Protects against Cross-Site Request Forgery attacks.
+- **Enabled by default** in Spring Security.
+- Should be **disabled for stateless APIs** (e.g., JWT):
+
+```java
+http.csrf(csrf -> csrf.disable());
+```
+
+---
+
+## ➕ addFilterBefore()
+- Adds a custom filter **before** another in the filter chain.
+
+```java
+http.addFilterBefore(customFilter, UsernamePasswordAuthenticationFilter.class);
+```
+
+### Use Cases:
+- JWT filters
+- Logging filters
+- Request validation filters
+
+---
+
+## 👤 userDetailsService
+- Loads user-specific data for authentication (username, password, roles).
+- You must implement `UserDetailsService`.
+
+```java
+http.userDetailsService(customUserDetailsService);
+```
+
+---
