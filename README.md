@@ -1,15 +1,17 @@
 # 02-configure-security-filter-chain – SecurityFilterChain Configuration
 
+## Files changed
+1. SecurityConfig
 ---
 
-## ✅ @EnableWebSecurity
+## @EnableWebSecurity
 - Enables Spring Security’s web security support.
 - Used to register and customize `SecurityFilterChain` beans. Also, `AuthenticationManager` and `PasswordEncoder`.
 - Replaces `WebSecurityConfigurerAdapter` (deprecated in Spring Security 5.7+).
 
 ---
 
-## 🔓 authorizeHttpRequests
+## authorizeHttpRequests
 - Defines **authorization rules** for HTTP requests.
 
 ```java
@@ -23,7 +25,7 @@ http.authorizeHttpRequests(auth -> auth
 
 ---
 
-## 🔒 sessionManagement
+## sessionManagement
 - Manages session-related security like setting the session creation policy.
 
 ```java
@@ -34,7 +36,7 @@ http.sessionManagement(session ->
 
 ---
 
-## 🔑 httpBasic() vs formLogin()
+## httpBasic() vs formLogin()
 
 | Feature     | httpBasic()           | formLogin()               |
 |-------------|-----------------------|---------------------------|
@@ -61,7 +63,7 @@ http.headers(headers ->
 
 ---
 
-## 🛡️ csrf()
+## csrf()
 - Protects against Cross-Site Request Forgery attacks.
 - **Enabled by default** in Spring Security.
 - Should be **disabled for stateless APIs** (e.g., JWT):
@@ -72,7 +74,7 @@ http.csrf(csrf -> csrf.disable());
 
 ---
 
-## ➕ addFilterBefore()
+## addFilterBefore()
 - Adds a custom filter **before** another in the filter chain.
 
 ```java
@@ -86,7 +88,7 @@ http.addFilterBefore(customFilter, UsernamePasswordAuthenticationFilter.class);
 
 ---
 
-## 👤 userDetailsService
+## userDetailsService
 - Loads user-specific data for authentication (username, password, roles).
 - You must implement `UserDetailsService`.
 
