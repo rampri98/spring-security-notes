@@ -43,7 +43,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsManager userDetailsManager() {
-        return new InMemoryUserDetailsManager();
+    public UserDetailsManager userDetailsManager(DataSource dataSource, PasswordEncoder encoder) {
+        return new JdbcUserDetailsManager(dataSource);
     }
 }
