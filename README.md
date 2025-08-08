@@ -1,97 +1,25 @@
-# 02-configure-security-filter-chain – SecurityFilterChain Configuration
+# inMemoryUserDetailsManager Notes
 
 ---
 
-## ✅ @EnableWebSecurity
-- Enables Spring Security’s web security support.
-- Used to register and customize `SecurityFilterChain` beans. Also, `AuthenticationManager` and `PasswordEncoder`.
-- Replaces `WebSecurityConfigurerAdapter` (deprecated in Spring Security 5.7+).
+## What is inMemoryUserDetailsManager?
 
+- A built-in implementation of `UserDetailsService`.
+- Stores user details (username, password, roles) **in memory**.
+- Useful for:
+    - Testing and prototyping
+    - Small apps that don’t need a database
 ---
-
-## 🔓 authorizeHttpRequests
-- Defines **authorization rules** for HTTP requests.
-
+## 🛠️ How to Configure inMemoryUserDetailsManager
+1. SecurityConfig 
+   - UserDetailsManager bean creating new InMemoryUserDetailsManager()
+   - PasswordEncoder bean
+2. AuthController to create an endpoint for registering new users
+3. AuthService to use userDetailsManager to createUser
 ```java
-http.authorizeHttpRequests(auth -> auth
-   .requestMatchers("/admin/**").hasRole("ADMIN")
-   .requestMatchers("/h2-console/**").permitAll()
-   .requestMatchers("/api/auth/**").permitAll()
-   .anyRequest().authenticated()
-)
+UserDetails user = User.withUsername(authRequest.getUsername())
+                .password(authRequest.getPassword())
+                .roles("USER")
+                .build();
+userDetailsManager.createUser(user);
 ```
-
----
-
-## 🔒 sessionManagement
-- Manages session-related security like setting the session creation policy.
-
-```java
-http.sessionManagement(session -> 
-    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-);
-```
-
----
-
-## 🔑 httpBasic() vs formLogin()
-
-| Feature     | httpBasic()           | formLogin()               |
-|-------------|-----------------------|---------------------------|
-| UI          | Browser alert box     | Custom login form         |
-| Use Case    | APIs, simple apps     | Web applications          |
-| Credentials | Sent on every request | Stored in session         |
-| Example     | `http.httpBasic();`   | `http.formLogin();`       |
-
----
-
-## 🧾 headers()
-- Configures **security-related HTTP headers**.
-
-```java
-http.headers(headers -> 
-    headers.frameOptions().sameOrigin()
-);
-```
-
-### Common Headers:
-- `X-Frame-Options`
-- `Content-Security-Policy`
-- `Strict-Transport-Security`
-
----
-
-## 🛡️ csrf()
-- Protects against Cross-Site Request Forgery attacks.
-- **Enabled by default** in Spring Security.
-- Should be **disabled for stateless APIs** (e.g., JWT):
-
-```java
-http.csrf(csrf -> csrf.disable());
-```
-
----
-
-## ➕ addFilterBefore()
-- Adds a custom filter **before** another in the filter chain.
-
-```java
-http.addFilterBefore(customFilter, UsernamePasswordAuthenticationFilter.class);
-```
-
-### Use Cases:
-- JWT filters
-- Logging filters
-- Request validation filters
-
----
-
-## 👤 userDetailsService
-- Loads user-specific data for authentication (username, password, roles).
-- You must implement `UserDetailsService`.
-
-```java
-http.userDetailsService(customUserDetailsService);
-```
-
----
